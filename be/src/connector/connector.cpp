@@ -21,6 +21,7 @@
 #ifndef __APPLE__
 #include "connector/iceberg_connector.h"
 #endif
+#include "connector/adbc_connector.h"
 #include "connector/benchmark_connector.h"
 #include "connector/jdbc_connector.h"
 #include "connector/lake_connector.h"
@@ -54,6 +55,7 @@ const std::string Connector::LAKE = "lake";
 const std::string Connector::BINLOG = "binlog";
 const std::string Connector::ICEBERG = "iceberg";
 const std::string Connector::BENCHMARK = "benchmark";
+const std::string Connector::ADBC = "adbc";
 
 class ConnectorManagerInit {
 public:
@@ -70,6 +72,7 @@ public:
 #ifndef __APPLE__
         cm->put(Connector::ICEBERG, std::make_unique<IcebergConnector>());
 #endif
+        cm->put(Connector::ADBC, std::make_unique<ADBCConnector>());
     }
 };
 
