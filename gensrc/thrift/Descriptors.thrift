@@ -688,6 +688,15 @@ struct TJDBCTable {
     8: optional string jdbc_passwd
 }
 
+struct TADBCTable {
+    1: optional string adbc_driver
+    2: optional string adbc_uri
+    3: optional string adbc_username
+    4: optional string adbc_password
+    5: optional string adbc_token
+    6: optional string catalog_name
+}
+
 // "Union" of all table types.
 struct TTableDescriptor {
   1: required Types.TTableId id
@@ -727,6 +736,9 @@ struct TTableDescriptor {
 
   // Paimon Table schema
   36: optional TPaimonTable paimonTable
+
+  // ADBC Table
+  37: optional TADBCTable adbcTable
 }
 
 struct TDescriptorTable {
