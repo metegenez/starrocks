@@ -51,6 +51,12 @@ STARCACHE_NAME="starcache.tar.gz"
 STARCACHE_SOURCE="starcache"
 STARCACHE_MD5SUM="c969df9d1b105059ddb71456842c7af8"
 
+# Go toolchain (required by ADBC Flight SQL driver which is built via CGo)
+GO_DOWNLOAD="https://go.dev/dl/go1.25.8.linux-amd64.tar.gz"
+GO_NAME="go1.25.8.linux-amd64.tar.gz"
+GO_SOURCE="go"
+GO_MD5SUM="98fd3b2f40a98de85860c24fea48908c"
+
 # pprof
 PPROF_DOWNLOAD="https://github.com/murphyatwork/pprof/releases/download/20251124/pprof-linux-amd64.zip"
 PPROF_NAME="pprof.zip"
