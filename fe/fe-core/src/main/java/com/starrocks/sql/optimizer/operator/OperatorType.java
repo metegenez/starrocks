@@ -65,6 +65,7 @@ public enum OperatorType {
     LOGICAL_CTE_CONSUME,
     LOGICAL_SPJG_PIECES,
     LOGICAL_BENCHMARK_SCAN,
+    LOGICAL_CACHE_STATS_SCAN,
 
     /**
      * Physical operator
@@ -95,6 +96,7 @@ public enum OperatorType {
     PHYSICAL_JDBC_SCAN,
     PHYSICAL_ADBC_SCAN,
     PHYSICAL_BENCHMARK_SCAN,
+    PHYSICAL_CACHE_STATS_SCAN,
 
     PHYSICAL_PROJECT,
     PHYSICAL_SORT,

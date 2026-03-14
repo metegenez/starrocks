@@ -23,6 +23,7 @@
 #endif
 #include "connector/adbc_connector.h"
 #include "connector/benchmark_connector.h"
+#include "connector/cache_stats_connector.h"
 #include "connector/jdbc_connector.h"
 #include "connector/lake_connector.h"
 #include "connector/mysql_connector.h"
@@ -56,6 +57,7 @@ const std::string Connector::BINLOG = "binlog";
 const std::string Connector::ICEBERG = "iceberg";
 const std::string Connector::BENCHMARK = "benchmark";
 const std::string Connector::ADBC = "adbc";
+const std::string Connector::CACHE_STATS = "cache_stats";
 
 class ConnectorManagerInit {
 public:
@@ -66,6 +68,7 @@ public:
         cm->put(Connector::JDBC, std::make_unique<JDBCConnector>());
         cm->put(Connector::MYSQL, std::make_unique<MySQLConnector>());
         cm->put(Connector::BENCHMARK, std::make_unique<BenchmarkConnector>());
+        cm->put(Connector::CACHE_STATS, std::make_unique<CacheStatsConnector>());
         cm->put(Connector::FILE, std::make_unique<FileConnector>());
         cm->put(Connector::LAKE, std::make_unique<LakeConnector>());
         cm->put(Connector::BINLOG, std::make_unique<BinlogConnector>());

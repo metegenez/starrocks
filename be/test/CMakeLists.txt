@@ -14,7 +14,6 @@ set(EXEC_FILES
         ./column/decimalv3_column_test.cpp
         ./column/fixed_length_column_extended_test.cpp
         ./column/json_column_test.cpp
-        ./column/variant_column_extended_test.cpp
         ./column/map_column_test.cpp
         ./column/struct_column_test.cpp
         ./column/nullable_column_test.cpp
@@ -23,6 +22,7 @@ set(EXEC_FILES
         ./common/uri_test.cpp
         ./connector/benchmark_connector_test.cpp
         ./connector/adbc_connector_test.cpp
+        ./connector/hive_connector_test.cpp
         ./connector/deletion_vector/deletion_vector_test.cpp
         ./connector_sink/hive_chunk_sink_test.cpp
         ./connector_sink/iceberg_chunk_sink_test.cpp
@@ -42,7 +42,6 @@ set(EXEC_FILES
         ./fs/fs_memory_test.cpp
         ./fs/fs_s3_test.cpp
         ./fs/fs_test.cpp
-        ./fs/encrypt_file_test.cpp
         ./fs/key_cache_test.cpp
         ./fs/output_stream_wrapper_test.cpp
         ./fs/poco_http_client_test.cpp
@@ -74,6 +73,7 @@ set(EXEC_FILES
         ./exec/pipeline/local_bucket_shuffle_test.cpp
         ./exec/pipeline/mem_limited_chunk_queue_test.cpp
         ./exec/pipeline/exec_group_test.cpp
+        ./exec/pipeline/glm_manager_tablet_adaptor_test.cpp
         ./exec/query_spill_manager_test.cpp
         ./exec/query_cache/query_cache_test.cpp
         ./exec/query_cache/transform_operator.cpp
@@ -106,6 +106,7 @@ set(EXEC_FILES
         ./exec/hdfs_scan_node_test.cpp
         ./exec/join_hash_map_test.cpp
         ./exec/json_parser_test.cpp
+        ./exec/cache_stats_scanner_test.cpp
         ./exec/lake_meta_scanner_test.cpp
         ./exec/multi_olap_table_sink_test.cpp
         ./exec/parquet_schema_builder_test.cpp
@@ -225,10 +226,12 @@ set(EXEC_FILES
         ./formats/parquet/page_reader_test.cpp
         ./formats/parquet/metadata_test.cpp
         ./formats/parquet/group_reader_test.cpp
+        ./formats/parquet/complex_column_reader_test.cpp
         ./formats/parquet/file_reader_test.cpp
         ./formats/parquet/file_writer_test.cpp
         ./formats/parquet/iceberg_schema_evolution_file_reader_test.cpp
         ./formats/parquet/column_converter_test.cpp
+        ./formats/parquet/column_reader_factory_test.cpp
         ./formats/parquet/parquet_file_writer_test.cpp
         ./formats/parquet/parquet_footer_test.cpp
         ./formats/parquet/parquet_cli_reader.h
@@ -236,6 +239,7 @@ set(EXEC_FILES
         ./formats/parquet/parquet_ut_base.cpp
         ./formats/parquet/parquet_variant_test.cpp
         ./formats/parquet/parquet_pos_reader_test.cpp
+        ./formats/parquet/iceberg_row_id_reader_test.cpp
         ./formats/parquet/page_index_test.cpp
         ./formats/parquet/dict_encoding_test.cpp
         ./formats/disk_range_test.cpp
@@ -357,6 +361,7 @@ add_subdirectory(types)
 add_subdirectory(runtime)
 add_subdirectory(exprs)
 add_subdirectory(io)
+add_subdirectory(fs)
 
 add_library(starrocks_test_objs OBJECT ${EXEC_FILES})
 target_link_libraries(starrocks_test_objs PRIVATE StarRocksPCH)
@@ -364,6 +369,7 @@ SET_TARGET_PROPERTIES(starrocks_test_objs PROPERTIES COMPILE_FLAGS "-fno-access-
 add_executable(starrocks_test test_main.cpp $<TARGET_OBJECTS:starrocks_test_objs>)
 
 TARGET_LINK_LIBRARIES(starrocks_test ${TEST_LINK_LIBS})
+STARROCKS_FORCE_LOAD_LIBS(starrocks_test Exprs ExprCore)
 
 
 SET(DW_TEST_FILES
@@ -489,6 +495,7 @@ SET(DW_TEST_FILES
     ./storage/rowset/column_iterator_decorator_test.cpp
     ./storage/rowset_column_partial_update_test.cpp
     ./storage/rowset/column_reader_writer_test.cpp
+    ./storage/rowset/object_column_writer_test.cpp
     ./storage/rowset_column_update_state_test.cpp
     ./storage/rowset/data_sample_test.cpp
     ./storage/rowset/default_value_column_iterator_test.cpp
@@ -566,6 +573,7 @@ SET_TARGET_PROPERTIES(starrocks_dw_objs PROPERTIES COMPILE_FLAGS "-fno-access-co
 target_link_libraries(starrocks_dw_objs PRIVATE StarRocksPCH)
 add_executable(starrocks_dw_test test_main.cpp $<TARGET_OBJECTS:starrocks_dw_objs>)
 TARGET_LINK_LIBRARIES(starrocks_dw_test ${TEST_LINK_LIBS})
+STARROCKS_FORCE_LOAD_LIBS(starrocks_dw_test Exprs ExprCore)
 
 
 # =================================================
