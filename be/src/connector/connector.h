@@ -201,6 +201,7 @@ enum ConnectorType {
     ICEBERG = 7,
     BENCHMARK = 8,
     CACHE_STATS = 9,
+    ADBC = 10,
 };
 
 class Connector {
@@ -215,6 +216,7 @@ public:
     static const std::string BINLOG;
     static const std::string ICEBERG;
     static const std::string BENCHMARK;
+    static const std::string ADBC;
     static const std::string CACHE_STATS;
 
     virtual ~Connector() = default;
