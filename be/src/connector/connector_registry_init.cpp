@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 
+#include "connector/adbc_connector.h"
 #include "connector/builtin_connector_registry.h"
 #include "connector/cache_stats_connector.h"
 #include "connector/connector_registry.h"

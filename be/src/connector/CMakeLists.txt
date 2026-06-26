@@ -36,6 +36,7 @@ target_link_libraries(ConnectorPrimitive PUBLIC
 ADD_BE_LIB(Connector
         connector_registry.cpp
         hive_connector.cpp
+        adbc_connector.cpp
         jdbc_connector.cpp
         lake_connector.cpp
         cache_stats_connector.cpp

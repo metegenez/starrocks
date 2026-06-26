@@ -645,6 +645,7 @@ set(STARROCKS_DEPENDENCIES
     arrow
     arrow_flight
     arrow_flight_sql
+    adbc_driver_manager
     gRPC::grpc
     gRPC::grpc++
     parquet
