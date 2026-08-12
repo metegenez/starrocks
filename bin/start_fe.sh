@@ -175,6 +175,18 @@ fi
 xmx=$(detect_jvm_xmx)
 final_java_opt="${final_java_opt} ${xmx}"
 
+adbc_jni_dir="${STARROCKS_HOME}/lib/adbc_driver_jni"
+if [[ "$OSTYPE" == darwin* ]]; then
+    adbc_jni_library="${adbc_jni_dir}/libadbc_driver_jni.dylib"
+else
+    adbc_jni_library="${adbc_jni_dir}/libadbc_driver_jni.so"
+fi
+if [[ ! -f "${adbc_jni_library}" ]]; then
+    echo "Error: StarRocks ADBC JNI library not found: ${adbc_jni_library}"
+    exit 1
+fi
+final_java_opt="${final_java_opt} -Darrow.adbc.driver.jni.library.path=${adbc_jni_dir}"
+
 if [ ${ENABLE_DEBUGGER} -eq 1 ]; then
     # Allow attaching debuggers to the FE process:
     # https://www.jetbrains.com/help/idea/attaching-to-local-process.html

@@ -537,3 +537,16 @@ list(GET LIB_JVM 0 LIB_JVM_PATH)
 set_target_properties(jvm PROPERTIES IMPORTED_LOCATION "${LIB_JVM_PATH}")
 include_directories(${JAVA_HOME}/include)
 include_directories(${JAVA_PLATFORM_INCLUDE_DIR})
+
+# ADBC Driver Manager (statically linked into starrocks_be — matches the
+# rocksdb/arrow/brpc convention, so no .so ships and no LD_LIBRARY_PATH
+# tweaks are needed in start_backend.sh).
+add_library(adbc_driver_manager STATIC IMPORTED GLOBAL)
+set_target_properties(adbc_driver_manager PROPERTIES
+    IMPORTED_LOCATION ${THIRDPARTY_DIR}/lib64/libadbc_driver_manager.a)
+# adbc_driver_manager loads driver .so files at runtime via dlopen; the
+# loader symbols come from libdl, which BE already links elsewhere, but
+# declare it on the imported target so anyone linking adbc_driver_manager
+# alone gets a transitive dl dependency.
+set_target_properties(adbc_driver_manager PROPERTIES
+    INTERFACE_LINK_LIBRARIES "dl")
