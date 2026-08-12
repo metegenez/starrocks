@@ -252,11 +252,11 @@ ARROW_NAME="arrow-apache-arrow-19.0.1.tar.gz"
 ARROW_SOURCE="arrow-apache-arrow-19.0.1"
 ARROW_MD5SUM="8c5091da0f8fb41a47d7f4dad7b712df"
 
-# ADBC C++ library (Apache Arrow ADBC - for BE native data scanning)
-ADBC_DOWNLOAD="https://github.com/apache/arrow-adbc/archive/refs/tags/apache-arrow-adbc-19.tar.gz"
-ADBC_NAME="arrow-adbc-apache-arrow-adbc-19.tar.gz"
-ADBC_SOURCE="arrow-adbc-apache-arrow-adbc-19"
-ADBC_MD5SUM="014c722841fecbd58e5c00b5620ffdac"
+# Apache Arrow ADBC C/C++ and Java JNI libraries.
+ADBC_DOWNLOAD="https://github.com/apache/arrow-adbc/archive/refs/tags/apache-arrow-adbc-24.tar.gz"
+ADBC_NAME="arrow-adbc-apache-arrow-adbc-24.tar.gz"
+ADBC_SOURCE="arrow-adbc-apache-arrow-adbc-24"
+ADBC_MD5SUM="2b2a18e95c33bdfd2bfa33a8b57c78d6"
 
 # S2
 S2_DOWNLOAD="https://github.com/google/s2geometry/archive/v0.9.0.tar.gz"

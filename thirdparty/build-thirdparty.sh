@@ -986,6 +986,8 @@ build_arrow() {
 # adbc
 build_adbc() {
     check_if_source_exist $ADBC_SOURCE
+    local adbc_install_dir="${TP_INSTALL_DIR}"
+
     cd $TP_SOURCE_DIR/$ADBC_SOURCE/c
     mkdir -p build && cd build
     rm -rf CMakeCache.txt CMakeFiles/
@@ -998,9 +1000,20 @@ build_adbc() {
         -DADBC_BUILD_TESTS=OFF \
         -DADBC_BUILD_BENCHMARKS=OFF \
         -DADBC_BUILD_EXAMPLES=OFF \
-        -DCMAKE_INSTALL_PREFIX=${STARROCKS_THIRDPARTY:-$TP_DIR}/installed \
+        -DCMAKE_INSTALL_PREFIX="${adbc_install_dir}" \
         -DCMAKE_INSTALL_LIBDIR=lib64 \
         -DCMAKE_PREFIX_PATH="${TP_INSTALL_DIR}" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -G "${CMAKE_GENERATOR}" ..
+    ${BUILD_SYSTEM} -j$PARALLEL
+    ${BUILD_SYSTEM} install
+
+    cd $TP_SOURCE_DIR/$ADBC_SOURCE/java
+    mkdir -p build && cd build
+    rm -rf CMakeCache.txt CMakeFiles/
+    ${CMAKE_CMD} \
+        -DCMAKE_INSTALL_PREFIX="${adbc_install_dir}" \
+        -DCMAKE_PREFIX_PATH="${adbc_install_dir}" \
         -DCMAKE_BUILD_TYPE=Release \
         -G "${CMAKE_GENERATOR}" ..
     ${BUILD_SYSTEM} -j$PARALLEL

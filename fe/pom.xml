@@ -70,7 +70,7 @@ under the License.
         <hikaricp.version>7.0.2</hikaricp.version>
         <kafka-clients.version>3.9.1</kafka-clients.version>
         <arrow.version>18.0.0</arrow.version>
-        <adbc.version>0.23.0</adbc.version>
+        <adbc.version>0.24.0</adbc.version>
         <grpc.version>1.63.0</grpc.version>
         <io.netty.version>4.1.135.Final</io.netty.version>
         <puppycrawl.version>10.21.1</puppycrawl.version>
@@ -1346,6 +1346,24 @@ under the License.
             <dependency>
                 <groupId>org.apache.arrow</groupId>
                 <artifactId>arrow-memory-netty</artifactId>
+                <version>${arrow.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-memory-core</artifactId>
+                <version>${arrow.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-c-data</artifactId>
+                <version>${arrow.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.arrow</groupId>
+                <artifactId>arrow-compression</artifactId>
                 <version>${arrow.version}</version>
             </dependency>
 
