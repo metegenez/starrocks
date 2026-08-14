@@ -9,6 +9,11 @@ let
       md5 = "955b6faedf32ec2ce1b7725561d15618";
       sha256 = "00nnmg2mazx8i1brxzvbmfq5j7738md884373nx8jq0096di4222";
     };
+    "arrow-adbc-apache-arrow-adbc-24.tar.gz" = {
+      url = "https://github.com/apache/arrow-adbc/archive/refs/tags/apache-arrow-adbc-24.tar.gz";
+      md5 = "2b2a18e95c33bdfd2bfa33a8b57c78d6";
+      sha256 = "sha256-R8bS62aG6DiUHUj5Un6Ug4xLcUp2xrzck8G9/NJLPMw=";
+    };
     "arrow-apache-arrow-24.0.0.tar.gz" = {
       url = "https://github.com/apache/arrow/archive/refs/tags/apache-arrow-24.0.0.tar.gz";
       md5 = "66c53bd00baa79034bd2ca167beea436";
@@ -482,6 +487,7 @@ let
       "pulsar-client-3.3.0.tar.gz"
       "flatbuffers-v1.10.0.tar.gz"
       "arrow-apache-arrow-24.0.0.tar.gz"
+      "arrow-adbc-apache-arrow-adbc-24.tar.gz"
       "brotli-1.0.9.tar.gz"
       "zstd-1.5.7.tar.gz"
       "s2geometry-0.9.0.tar.gz"
@@ -553,6 +559,7 @@ let
       "pulsar-client-3.3.0.tar.gz"
       "flatbuffers-v1.10.0.tar.gz"
       "arrow-apache-arrow-24.0.0.tar.gz"
+      "arrow-adbc-apache-arrow-adbc-24.tar.gz"
       "brotli-1.0.9.tar.gz"
       "zstd-1.5.7.tar.gz"
       "s2geometry-0.9.0.tar.gz"
@@ -622,6 +629,7 @@ let
       "pulsar-client-3.3.0.tar.gz"
       "flatbuffers-v1.10.0.tar.gz"
       "arrow-apache-arrow-24.0.0.tar.gz"
+      "arrow-adbc-apache-arrow-adbc-24.tar.gz"
       "brotli-1.0.9.tar.gz"
       "zstd-1.5.7.tar.gz"
       "s2geometry-0.9.0.tar.gz"
@@ -694,6 +702,7 @@ let
       "PULSAR"
       "FLATBUFFERS"
       "ARROW"
+      "ADBC"
       "BROTLI"
       "ZSTD"
       "S2"
@@ -765,6 +774,7 @@ let
       "PULSAR"
       "FLATBUFFERS"
       "ARROW"
+      "ADBC"
       "BROTLI"
       "ZSTD"
       "S2"
@@ -834,6 +844,7 @@ let
       "PULSAR"
       "FLATBUFFERS"
       "ARROW"
+      "ADBC"
       "BROTLI"
       "ZSTD"
       "S2"
@@ -909,6 +920,7 @@ let
       "brotli"
       "xsimd"
       "arrow"
+      "adbc"
       "librdkafka"
       "pulsar"
       "s2"
@@ -980,6 +992,7 @@ let
       "brotli"
       "xsimd"
       "arrow"
+      "adbc"
       "librdkafka"
       "pulsar"
       "s2"
@@ -1049,6 +1062,7 @@ let
       "brotli"
       "xsimd"
       "arrow"
+      "adbc"
       "librdkafka"
       "pulsar"
       "s2"
