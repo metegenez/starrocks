@@ -485,11 +485,9 @@ get_target_property(gRPC_INCLUDE_DIR gRPC::grpc INTERFACE_INCLUDE_DIRECTORIES)
 message(STATUS "Using gRPC ${gRPC_VERSION}")
 include_directories(SYSTEM ${gRPC_INCLUDE_DIR})
 
-# Disable libdeflate on aarch64
-if ("${CMAKE_BUILD_TARGET_ARCH}" STREQUAL "x86" OR "${CMAKE_BUILD_TARGET_ARCH}" STREQUAL "x86_64")
-    add_library(libdeflate STATIC IMPORTED GLOBAL)
-    set_target_properties(libdeflate PROPERTIES IMPORTED_LOCATION ${THIRDPARTY_DIR}/lib64/libdeflate.a)
-endif()
+starrocks_resolve_thirdparty_library(LIBDEFLATE_LIBRARY libdeflate.a)
+add_library(libdeflate STATIC IMPORTED GLOBAL)
+set_target_properties(libdeflate PROPERTIES IMPORTED_LOCATION ${LIBDEFLATE_LIBRARY})
 
 if (${WITH_TENANN} STREQUAL "ON")
     add_library(tenann STATIC IMPORTED GLOBAL)
@@ -584,3 +582,11 @@ list(GET LIB_JVM 0 LIB_JVM_PATH)
 set_target_properties(jvm PROPERTIES IMPORTED_LOCATION "${LIB_JVM_PATH}")
 include_directories(${JAVA_HOME}/include)
 include_directories(${JAVA_PLATFORM_INCLUDE_DIR})
+
+# ADBC Driver Manager is statically linked into starrocks_be. External ADBC
+# drivers remain dynamically loaded by the Driver Manager at runtime.
+add_library(adbc_driver_manager STATIC IMPORTED GLOBAL)
+set_target_properties(adbc_driver_manager PROPERTIES
+    IMPORTED_LOCATION ${THIRDPARTY_DIR}/lib64/libadbc_driver_manager.a)
+set_target_properties(adbc_driver_manager PROPERTIES
+    INTERFACE_LINK_LIBRARIES "${CMAKE_DL_LIBS}")

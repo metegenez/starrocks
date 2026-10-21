@@ -107,6 +107,7 @@ if ("${WITH_PAIMON_CPP}" STREQUAL "ON" AND NOT "${MAKE_TEST}" STREQUAL "ON" AND 
             hive/paimon/paimon_predicate_converter.cpp
             hive/paimon/paimon_file_system.cpp
             hive/paimon/paimon_scanner.cpp
+            hive/paimon/paimon_blob_converter.cpp
     )
     set_target_properties(starrocks_paimon PROPERTIES POSITION_INDEPENDENT_CODE ON)
     # WRAP_LINKER_FLAGS keeps __cxa_throw/__floattidf wrapping consistent with
@@ -167,6 +168,29 @@ target_link_libraries(Connector PUBLIC
         Base
         Gutil
         StarRocksGen
+)
+
+ADD_BE_LIB(ConnectorADBC
+        adbc_connector.cpp
+        ../exec/adbc_scanner.cpp
+)
+
+target_link_libraries(ConnectorADBC PUBLIC
+        ConnectorPrimitive
+        Runtime
+        ChunkCore
+        ColumnCore
+        Types
+        Common
+        Base
+        Gutil
+        StarRocksGen
+)
+
+target_link_libraries(ConnectorADBC PRIVATE
+        Platform
+        arrow
+        adbc_driver_manager
 )
 
 ADD_BE_LIB(ConnectorLake

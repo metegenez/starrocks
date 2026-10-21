@@ -25,6 +25,7 @@ import com.starrocks.catalog.Table;
 import com.starrocks.common.AnalysisException;
 import com.starrocks.common.Config;
 import com.starrocks.common.tvr.TvrVersionRange;
+import com.starrocks.connector.partitiontraits.ADBCPartitionTraits;
 import com.starrocks.connector.partitiontraits.BenchmarkPartitionTraits;
 import com.starrocks.connector.partitiontraits.CachedPartitionTraits;
 import com.starrocks.connector.partitiontraits.DeltaLakePartitionTraits;
@@ -59,6 +60,8 @@ public abstract class ConnectorPartitionTraits {
 
     private static final Logger LOG = LoggerFactory.getLogger(ConnectorPartitionTraits.class);
 
+    // Constructor references are deferred: building this registry does not initialize its subclasses.
+    @SuppressWarnings("java:S2390")
     private static final Map<Table.TableType, Supplier<ConnectorPartitionTraits>> TRAITS_TABLE =
             ImmutableMap.<Table.TableType, Supplier<ConnectorPartitionTraits>>builder()
                     // Consider all native tables as OLAP
@@ -75,6 +78,7 @@ public abstract class ConnectorPartitionTraits {
                     .put(Table.TableType.ODPS, OdpsPartitionTraits::new)
                     .put(Table.TableType.KUDU, KuduPartitionTraits::new)
                     .put(Table.TableType.JDBC, JDBCPartitionTraits::new)
+                    .put(Table.TableType.ADBC, ADBCPartitionTraits::new)
                     .put(Table.TableType.DELTALAKE, DeltaLakePartitionTraits::new)
                     .put(Table.TableType.FLUSS, FlussPartitionTraits::new)
                     .put(Table.TableType.BENCHMARK, BenchmarkPartitionTraits::new)
@@ -140,15 +144,24 @@ public abstract class ConnectorPartitionTraits {
      * operations (currently Iceberg) will use the pinned snapshot instead of the live one.
      * Other connectors store the range but ignore it in their partition methods.
      */
-    public static ConnectorPartitionTraits build(Table table, TvrVersionRange pinnedVersionRange) {
-        ConnectorPartitionTraits traits = build(table);
+    public static ConnectorPartitionTraits build(MaterializedView mv, Table table,
+                                                 TvrVersionRange pinnedVersionRange) {
+        ConnectorPartitionTraits traits = build(mv, table);
         if (pinnedVersionRange != null) {
             traits.setPinnedVersionRange(pinnedVersionRange);
         }
         return traits;
     }
 
-    private static ConnectorPartitionTraits buildWithoutCache(Table table) {
+    public static ConnectorPartitionTraits build(Table table, TvrVersionRange pinnedVersionRange) {
+        return build(null, table, pinnedVersionRange);
+    }
+
+    /**
+     * Build the partition traits for the table without the query-context cache wrapper, whatever the current
+     * thread's context.
+     */
+    public static ConnectorPartitionTraits buildWithoutCache(Table table) {
         ConnectorPartitionTraits res = build(table.getType());
         res.table = table;
         return res;
