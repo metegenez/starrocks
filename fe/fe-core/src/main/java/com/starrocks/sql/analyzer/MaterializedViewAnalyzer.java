@@ -157,6 +157,7 @@ public class MaterializedViewAnalyzer {
                     Table.TableType.HUDI,
                     Table.TableType.ICEBERG,
                     Table.TableType.JDBC,
+                    Table.TableType.ADBC,
                     Table.TableType.MYSQL,
                     Table.TableType.PAIMON,
                     Table.TableType.ODPS,
@@ -688,6 +689,11 @@ public class MaterializedViewAnalyzer {
                     throw new SemanticException(
                             "VARIANT is not supported as a column type for materialized views: column '" +
                                     colName + "'");
+                }
+                // FILE (external file reference) has no native storage either.
+                if (type.containsFile()) {
+                    throw new SemanticException(
+                            "FILE is not supported as a column type for materialized views: column '" + colName + "'");
                 }
                 Column column = new Column(colName, type, colNullable);
                 if (IvmOpUtils.COLUMN_ROW_ID.equalsIgnoreCase(colName)) {

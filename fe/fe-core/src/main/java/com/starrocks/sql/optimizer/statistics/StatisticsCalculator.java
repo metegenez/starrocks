@@ -73,6 +73,7 @@ import com.starrocks.sql.optimizer.operator.OperatorVisitor;
 import com.starrocks.sql.optimizer.operator.Projection;
 import com.starrocks.sql.optimizer.operator.ScanOperatorPredicates;
 import com.starrocks.sql.optimizer.operator.UKFKConstraints;
+import com.starrocks.sql.optimizer.operator.logical.LogicalADBCScanOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalAIProjectOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalAggregationOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalAssertOneRowOperator;
@@ -96,6 +97,7 @@ import com.starrocks.sql.optimizer.operator.logical.LogicalIntersectOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalJDBCScanOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalJoinOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalKuduScanOperator;
+import com.starrocks.sql.optimizer.operator.logical.LogicalLanceScanOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalLimitOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalMetaScanOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalMysqlScanOperator;
@@ -115,6 +117,7 @@ import com.starrocks.sql.optimizer.operator.logical.LogicalUnionOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalValuesOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalViewScanOperator;
 import com.starrocks.sql.optimizer.operator.logical.LogicalWindowOperator;
+import com.starrocks.sql.optimizer.operator.physical.PhysicalADBCScanOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalAIProjectOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalAssertOneRowOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalBenchmarkScanOperator;
@@ -137,6 +140,7 @@ import com.starrocks.sql.optimizer.operator.physical.PhysicalIcebergScanOperator
 import com.starrocks.sql.optimizer.operator.physical.PhysicalIntersectOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalJDBCScanOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalKuduScanOperator;
+import com.starrocks.sql.optimizer.operator.physical.PhysicalLanceScanOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalLimitOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalMergeJoinOperator;
 import com.starrocks.sql.optimizer.operator.physical.PhysicalMetaScanOperator;
@@ -185,6 +189,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -813,6 +818,28 @@ public class StatisticsCalculator extends OperatorVisitor<Void, ExpressionContex
     }
 
     @Override
+    public Void visitLogicalLanceScan(LogicalLanceScanOperator node, ExpressionContext context) {
+        return computeLanceScanNode(node, context, node.getTable(), node.getColRefToColumnMetaMap());
+    }
+
+    @Override
+    public Void visitPhysicalLanceScan(PhysicalLanceScanOperator node, ExpressionContext context) {
+        return computeLanceScanNode(node, context, node.getTable(), node.getColRefToColumnMetaMap());
+    }
+
+    private Void computeLanceScanNode(Operator node, ExpressionContext context, Table table,
+                                      Map<ColumnRefOperator, Column> columnRefOperatorColumnMap) {
+        if (context.getStatistics() == null) {
+            Statistics stats = GlobalStateMgr.getCurrentState().getMetadataMgr().getTableStatistics(
+                    optimizerContext, table.getCatalogName(), table, columnRefOperatorColumnMap, null,
+                    node.getPredicate(), -1, TvrTableSnapshot.empty());
+            context.setStatistics(stats);
+        }
+
+        return visitOperator(node, context);
+    }
+
+    @Override
     public Void visitLogicalFlussScan(LogicalFlussScanOperator node, ExpressionContext context) {
         return computeFlussScanNode(node, context, node.getTable(), node.getColRefToColumnMetaMap());
     }
@@ -1061,6 +1088,18 @@ public class StatisticsCalculator extends OperatorVisitor<Void, ExpressionContex
             LOG.warn("Failed to get JDBC table statistics for {}: {}", table.getName(), e.getMessage());
         }
         return computeNormalExternalTableScanNode(node, context, table, colRefToColumnMetaMap, rowCount, source);
+    }
+
+    @Override
+    public Void visitLogicalADBCScan(LogicalADBCScanOperator node, ExpressionContext context) {
+        return computeNormalExternalTableScanNode(node, context, node.getTable(), node.getColRefToColumnMetaMap(),
+                Config.default_statistics_output_row_count);
+    }
+
+    @Override
+    public Void visitPhysicalADBCScan(PhysicalADBCScanOperator node, ExpressionContext context) {
+        return computeNormalExternalTableScanNode(node, context, node.getTable(), node.getColRefToColumnMetaMap(),
+                Config.default_statistics_output_row_count);
     }
 
     /**
@@ -2002,7 +2041,7 @@ public class StatisticsCalculator extends OperatorVisitor<Void, ExpressionContex
 
         for (Map.Entry<Pair<Integer, Integer>, List<Pair<BinaryPredicateOperator, Double>>> entry :
                 tablePairToPredicateWithSelectivity.entrySet()) {
-            entry.getValue().sort((o1, o2) -> ((int) (o2.second - o1.second)));
+            entry.getValue().sort((o1, o2) -> Double.compare(o2.second, o1.second));
             for (int index = 0; index < entry.getValue().size(); ++index) {
                 double selectivity = entry.getValue().get(index).second;
                 double sqrtNum = pow(2, index);
@@ -2194,17 +2233,57 @@ public class StatisticsCalculator extends OperatorVisitor<Void, ExpressionContex
 
     private static ColumnStatistic estimateWindowCall(CallOperator call, Statistics inputStatistics,
                                                       List<ScalarOperator> partitionExpressions) {
-        if (!partitionExpressions.isEmpty() || !FunctionSet.ROW_NUMBER.equals(call.getFnName())) {
+        if (!FunctionSet.ROW_NUMBER.equals(call.getFnName())) {
             return ExpressionStatisticCalculator.calculate(call, inputStatistics);
         }
         double rowCount = inputStatistics.getOutputRowCount();
+        OptionalDouble rowsPerPartition = estimateRowsPerPartition(partitionExpressions, inputStatistics, rowCount);
+        if (rowsPerPartition.isEmpty()) {
+            return ColumnStatistic.unknown();
+        }
         return ColumnStatistic.builder()
                 .setMinValue(1)
-                .setMaxValue(rowCount)
-                .setDistinctValuesCount(rowCount)
+                .setMaxValue(rowsPerPartition.getAsDouble())
+                .setDistinctValuesCount(rowsPerPartition.getAsDouble())
                 .setNullsFraction(0)
                 .setAverageRowSize(call.getType().getTypeSize())
                 .build();
+    }
+
+    // The window partitions are the groups a GROUP BY on the partition columns would produce, so the average
+    // partition size follows from that group count. Assumes partitions are evenly sized.
+    private static OptionalDouble estimateRowsPerPartition(List<ScalarOperator> partitionExpressions,
+                                                           Statistics inputStatistics, double rowCount) {
+        if (partitionExpressions.isEmpty()) {
+            return OptionalDouble.of(rowCount);
+        }
+        if (!partitionExpressions.stream().allMatch(ScalarOperator::isColumnRef)) {
+            // TODO: Estimate NDV for non-column partition expressions when expression statistics support it.
+            return OptionalDouble.empty();
+        }
+
+        // Duplicate partition keys (e.g. PARTITION BY pk, pk) do not create extra partitions, so deduplicate
+        // before estimating the group count to avoid multiplying the cardinality for the same column.
+        List<ColumnRefOperator> partitionColumns = partitionExpressions.stream()
+                .map(ScalarOperator::<ColumnRefOperator>cast)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // Without statistics on an uncovered partition column, computeGroupByStatistics falls back to default
+        // group-by coefficients that would fabricate a confident, tight per-partition size (and range) from no
+        // information. Combined NDV statistics can still cover unknown individual columns, so preserve them.
+        Pair<Set<ColumnRefOperator>, MultiColumnCombinedStats> mcStats =
+                inputStatistics.getLargestSubsetMCStats(new HashSet<>(partitionColumns));
+        Set<ColumnRefOperator> columnsWithMultiColumnStats =
+                mcStats == null ? Collections.emptySet() : mcStats.first;
+        if (partitionColumns.stream().anyMatch(column ->
+                !columnsWithMultiColumnStats.contains(column) &&
+                        inputStatistics.getColumnStatistic(column).isUnknown())) {
+            return OptionalDouble.empty();
+        }
+
+        double partitionCount = computeGroupByStatistics(partitionColumns, inputStatistics, new HashMap<>());
+        return OptionalDouble.of(rowCount / Math.max(1, partitionCount));
     }
 
     public Statistics estimateStatistics(List<ScalarOperator> predicateList, Statistics statistics) {
